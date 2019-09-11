@@ -56,8 +56,11 @@ function mapApiGatewayEventToHttpRequest(event, context, socketPath) {
 
   headers['x-apigateway-event'] = encodeURIComponent(JSON.stringify(clonedEventWithoutBody))
   headers['x-apigateway-context'] = encodeURIComponent(JSON.stringify(context))
+  if (event.sourceIP != null) {
+    headers['x-forwarded-for'] = event.sourceIP;
+  }
 
-  const mappedRequest = {
+  return {
     method: event.httpMethod,
     path: getPathWithQueryStringParams(event),
     headers,
@@ -68,12 +71,6 @@ function mapApiGatewayEventToHttpRequest(event, context, socketPath) {
     // hostname: headers.Host, // Alias for host
     // port: headers['X-Forwarded-Port']
   };
-  if (event.sourceIP != null) {
-    mappedRequest.connection = {
-      remoteAddress: event.sourceIP
-    }
-  }
-  return mappedRequest;
 }
 
 function forwardResponseToApiGateway(server, response, resolver) {
